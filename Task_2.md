@@ -29,6 +29,7 @@ ros2 interface show custom_interface/msg/Person
 cd src
 ros2 pkg create --build-type ament_python customer_package --dependencies rclpy custom_interface
 ```
+https://github.com/olpuri/Algorithmic-Foundations-ros/blob/shivani_chadha/my_folder/Task%202%2003.png
 ### In the required folder make two empty files
 ```
 cd customer_package/customer_package
