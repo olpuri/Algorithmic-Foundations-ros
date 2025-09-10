@@ -9,7 +9,7 @@ cd Group_3/src
 ```
 ros2 pkg create --build-type ament_cmake --license Apache-2.0 custom_interface --dependencies rclcpp std_msgs
 ```
-my_folder/Task 2 01.png
+[my_folder/Task 2 01.png](https://github.com/olpuri/Algorithmic-Foundations-ros/blob/shivani_chadha/my_folder/Task%202%2001.png)
 ### In the package make the folder and create a new empty file
 ```
 cd custom_interface
