@@ -9,7 +9,8 @@ cd Group_3/src
 ```
 ros2 pkg create --build-type ament_cmake --license Apache-2.0 custom_interface --dependencies rclcpp std_msgs
 ```
-[my_folder/Task 2 01.png](https://github.com/olpuri/Algorithmic-Foundations-ros/blob/shivani_chadha/my_folder/Task%202%2001.png)
+<img width="722" height="380" alt="Task 2 01" src="https://github.com/user-attachments/assets/9614c4b4-b1d4-4090-903d-c0277d674dc4" />
+
 ### In the package make the folder and create a new empty file
 ```
 cd custom_interface
@@ -31,7 +32,8 @@ ros2 interface show custom_interface/msg/Person
 cd src
 ros2 pkg create --build-type ament_python customer_package --dependencies rclpy custom_interface
 ```
-https://github.com/olpuri/Algorithmic-Foundations-ros/blob/shivani_chadha/my_folder/Task%202%2003.png
+<img width="1147" height="647" alt="Task 2 03" src="https://github.com/user-attachments/assets/7a9a17e9-e156-41dc-ba5a-532693b739df" />
+
 ### In the required folder make two empty files
 ```
 cd customer_package/customer_package
@@ -48,10 +50,12 @@ source install/setup.bash
 ```
 ros2 run customer_package publisher
 ```
-https://github.com/olpuri/Algorithmic-Foundations-ros/blob/shivani_chadha/my_folder/Task%202%2004.png
+<img width="737" height="430" alt="Task 2 04" src="https://github.com/user-attachments/assets/25eff618-1e63-4914-92c9-9db9cebb19b8" />
+
 ### Run in Terminal 2
 ```
 source install/setup.bash
 ros2 run customer_package subscriber
 ```
-https://github.com/olpuri/Algorithmic-Foundations-ros/blob/shivani_chadha/my_folder/Task%202%2005.png
+<img width="817" height="457" alt="Task 2 05" src="https://github.com/user-attachments/assets/ee94cafd-7180-46aa-9fa9-c6150ab76d92" />
+
