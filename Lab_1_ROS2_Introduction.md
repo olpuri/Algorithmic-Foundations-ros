@@ -155,12 +155,13 @@ entry_points={
  ], 
 },
 ```
-### Navigation to workspace and run but it won't run:
+### Navigation to workspace:
 ```
 colcon build 
 source install/setup.bash
 ros2 run Group_3 subscriber
 ```
+## Running the Code
 ### Terminal 1
 ```
 source install/setup.bash 
