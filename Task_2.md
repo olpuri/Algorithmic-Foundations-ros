@@ -24,6 +24,8 @@ colcon build --packages-select custom_interface
 source install/setup.bash
 ros2 interface show custom_interface/msg/Person
 ```
+<img width="662" height="107" alt="image" src="https://github.com/user-attachments/assets/02c90838-1c21-4fbb-a414-28c577178965" />
+
 ### Create a new python based package
 ```
 cd src
