@@ -46,6 +46,7 @@ source install/setup.bash
 ```
 ros2 run customer_package publisher
 ```
+https://github.com/olpuri/Algorithmic-Foundations-ros/blob/shivani_chadha/my_folder/Task%202%2004.png
 ### Run in Terminal 2
 ```
 source install/setup.bash
