@@ -9,7 +9,7 @@ cd Group_3/src
 ```
 ros2 pkg create --build-type ament_cmake --license Apache-2.0 custom_interface --dependencies rclcpp std_msgs
 ```
-
+ask 2 01.png
 ### In the package make the folder and create a new empty file
 ```
 cd custom_interface
