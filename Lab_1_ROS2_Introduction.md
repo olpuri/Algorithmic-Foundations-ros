@@ -115,7 +115,7 @@ HistoryPolicy
 class MinimalSubscriber(Node):
  def __init__(self):
  super().__init__('subscriber')
- topic_name = '/---' # TODO: # subscribe to the publisher’s topic.
+ topic_name = '/topic1' # TODO: # subscribe to the publisher’s topic.
  
  self.qos_profile = QoSProfile(
  reliability=ReliabilityPolicy.RELIABLE, # Ensure delivery of
@@ -146,9 +146,31 @@ minimal_subscriber = MinimalSubscriber()
 if __name__ == '__main__':
  main()
 ```
-
-
-
+### Changing entry_points for Subscriber:
+```
+entry_points={ 
+ 'console_scripts': [ 
+ 'publisher = Group_3.publisher:main', 
+ 'subscriber = Group_3.subscriber:main', 
+ ], 
+},
+```
+### Navigation to workspace and run but it won't run:
+```
+colcon build 
+source install/setup.bash
+ros2 run Group_3 subscriber
+```
+### Terminal 1
+```
+source install/setup.bash 
+ros2 run Group_3 publisher
+```
+### Terminal 2
+```
+source install/setup.bash 
+ros2 run Group_3 subscriber
+```
 
 
 
