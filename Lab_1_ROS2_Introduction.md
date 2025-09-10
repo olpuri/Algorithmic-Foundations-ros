@@ -105,7 +105,7 @@ alias sb="source install/setup.bash"
 ros2 run Group_3 publisher
 ros2 topic list
 ```
-### Subscriber.py
+### Subscriber.py and required changes:
 ```
 import rclpy
 from rclpy.node import Node
