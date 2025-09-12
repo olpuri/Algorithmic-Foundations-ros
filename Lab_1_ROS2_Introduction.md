@@ -113,7 +113,71 @@ nano pose_publisher.py
 ```
 Pose_publisher code:
 ```
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import PoseStamped
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
 
+
+class PosePublisher(Node):
+    def __init__(self):
+        super().__init__('pose_publisher')
+        topic_name = '/pose_topic'  
+
+        self.qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+
+        self.publisher_ = self.create_publisher(
+            PoseStamped,
+            topic_name,
+            self.qos_profile
+        )
+
+        timer_period = 0.5  # seconds → publishes at 2 Hz
+        self.timer = self.create_timer(timer_period, self.timer_callback)
+        self.t = 0.0
+        self.speed = 0.1  # step size
+
+        self.get_logger().info("Pose publisher started")
+
+    def timer_callback(self):
+        msg = PoseStamped()
+        msg.header.stamp = self.get_clock().now().to_msg()
+        msg.header.frame_id = "map"
+
+        # Straight line trajectory: diagonal in x-y
+        msg.pose.position.x = self.t * self.speed
+        msg.pose.position.y = self.t * self.speed
+        msg.pose.position.z = 0.0
+
+        # Identity orientation (no rotation)
+        msg.pose.orientation.x = 0.0
+        msg.pose.orientation.y = 0.0
+        msg.pose.orientation.z = 0.0
+        msg.pose.orientation.w = 1.0
+
+        self.publisher_.publish(msg)
+        self.get_logger().info(
+            f'Publishing Pose: x={msg.pose.position.x:.2f}, y={msg.pose.position.y:.2f}'
+        )
+
+        self.t += 1.0
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    pose_publisher = PosePublisher()
+    rclpy.spin(pose_publisher)
+    pose_publisher.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
 ```
 ### Create a subscriber node 
 ```
@@ -122,6 +186,49 @@ nano subscriber.py
 ```
 Subscriber code:
 ```
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import PoseStamped
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy, HistoryPolicy
+
+
+class PoseSubscriber(Node):
+    def __init__(self):
+        super().__init__('pose_subscriber')
+        topic_name = '/pose_topic'  
+
+        self.qos_profile = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+
+        self.subscription = self.create_subscription(
+            PoseStamped,
+            topic_name,
+            self.listener_callback,
+            self.qos_profile
+        )
+
+        self.get_logger().info("Pose subscriber started")
+
+    def listener_callback(self, msg: PoseStamped):
+        x = msg.pose.position.x
+        y = msg.pose.position.y
+        self.get_logger().info(f'Received Pose → x: {x:.2f}, y: {y:.2f}')
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = PoseSubscriber()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
 
 ```
 ## Use the corresponding commands to test in the terminal:
