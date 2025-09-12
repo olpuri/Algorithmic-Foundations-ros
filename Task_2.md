@@ -226,38 +226,80 @@ ros2 run task_2 pubslisher
 ```
 ros2 run task_2 subscriber
 ```
-SCREENSHOT
 
-### In the required folder make two empty files
-```
-cd customer_package/customer_package
-touch publisher.py
-touch subscriber.py
-cd ~/Group_3
-```
-publisher.py
-```
+![Output](my_folder/task2_pic6.png)
 
+### Optional
+(in ~/ros2_ws/src/student_msgs/msg)
 ```
-subscriber.py
+nano StudentAge.msg
 ```
+add to the top Header message
+```
+std_msgs/Header header
+string name
+int8 age
+```
+### Adding deepeencies 
+to CMakeLists.txt, so it look like this:
+```
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/StudentAge.msg"
+  DEPENDENCIES std_msgs
+)
+```
+### Build the package in the root of your workspace
+```
+colcon build --packages-select student_msgs
+sb (source install/setup.bash)
+```
+### Subscriber should look like this:
+```
+import rclpy
+from rclpy.node import Node
+from student_msgs.msg import StudentAge
 
-```
-### Build both your custom message package and your Python nodes package
-```
-colcon build --packages-select customer_package custom_interface
-source install/setup.bash
-```
-### Run in Terminal 1
-```
-ros2 run customer_package publisher
-```
-<img width="737" height="430" alt="Task 2 04" src="https://github.com/user-attachments/assets/25eff618-1e63-4914-92c9-9db9cebb19b8" />
+class StudentAgeSubscriber(Node):
+    def __init__(self):
+        super().__init__('subscriber')
+        self.subscription = self.create_subscription(
+            StudentAge,
+            'student_age',
+            self.listener_callback,
+            10
+        )
+        self.last_stamp = None  # store the last timestamp
 
-### Run in Terminal 2
-```
-source install/setup.bash
-ros2 run customer_package subscriber
-```
-<img width="817" height="457" alt="Task 2 05" src="https://github.com/user-attachments/assets/ee94cafd-7180-46aa-9fa9-c6150ab76d92" />
+    def listener_callback(self, msg):
+        stamp = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
+        if self.last_stamp is not None:
+            dt = stamp - self.last_stamp
+            freq = 1.0 / dt if dt > 0 else 0.0
+            self.get_logger().info(
+                f'Received: {msg.name}, Age: {msg.age}, Frequency: {freq:.2f} Hz'
+            )
+        else:
+            self.get_logger().info(
+                f'First message: {msg.name}, Age: {msg.age}'
+            )
+        self.last_stamp = stamp
 
+def main(args=None):
+    rclpy.init(args=args)
+    node = StudentAgeSubscriber()
+    rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+```
+### Build and run 
+(in ros2_ws:)
+```
+colcon build --packages-select task_2
+sb
+ros2 run task_2 publisher 
+ros2 run task_2 subscriber 
+```
+![Output](my_folder/task2_pic7.png)
