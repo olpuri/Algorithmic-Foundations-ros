@@ -1,3 +1,152 @@
+## 3.- Services
+### Create a new package 
+(in src)
+```
+ros2 pkg create --build-type ament_python --license Apache-2.0 service_example --dependencies rclpy example_interfaces
+```
+### Navigate to the folder service_example folder and create a file called add_two_ints_server.py.
+```
+cd service_example/service_example
+```
+```
+cat <<EOF > add_two_ints_server.py
+import rclpy
+from rclpy.node import Node
+from example_interfaces.srv import AddTwoInts
+
+class SumServerNode(Node):
+    def __init__(self):
+        super().__init__("sum_server")
+        self.server_ = self.create_service(
+            AddTwoInts,
+            "add_two_ints", # TODO: give your sevice a name
+            self.sum_service_callback
+        )
+        self.get_logger().info("Service server Python node has been created")
+
+    def sum_service_callback(self, request, response):
+        response.sum = request.a + request.b # Add the integers
+        self.get_logger().info(
+            f'Processed request: {request.a} + {request.b} -> {response.sum}'
+        )
+        return response
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = SumServerNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+EOF
+```
+### Create another file for the client called add_two_ints_client.py and paste the following:
+```
+cat <<EOF > add_two_ints_client.py
+import rclpy
+from rclpy.node import Node
+from example_interfaces.srv import AddTwoInts
+from functools import partial
+
+class SumClientNode(Node):
+    def __init__(self):
+        super().__init__('sum_client_node')
+        self.get_logger().info('Sum Client Python node has been created')
+
+        # declare parameters for AddTwoInts
+        a_ = 6  # TODO: fill with a value
+        b_ = 11  # TODO: fill with a value
+
+        self.call_sum_server(a_, b_)
+
+    def call_sum_server(self, a, b):
+        # TODO: fill with your service name
+        client = self.create_client(AddTwoInts, 'add_two_ints') 
+        
+        
+        while not client.wait_for_service(timeout_sec=1.0):
+            self.get_logger().info('Waiting for the Server...')
+
+        # create request
+        request = AddTwoInts.Request()
+        request.a = a # TODO: asign the correct variable
+        request.b = b # TODO: asign the correct variable
+
+        # send request asynchronously
+        future = client.call_async(request)
+        future.add_done_callback(partial(self.sum_service_callback, a=a, b=b))
+
+    def sum_service_callback(self, future, a, b):
+        try:
+            response = future.result()
+            # TODO: print the values and the result
+            self.get_logger().info(f'Request: {a} + {b} = {response.sum}')
+        except Exception as e:
+            self.get_logger().info(f'Service call failed: {e}')
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = SumClientNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+
+EOF
+```
+### Add entry points
+```
+entry_points={
+    'console_scripts': [
+        'add_two_ints_server = service_example.add_two_ints_server:main',
+        'add_two_ints_client = service_example.add_two_ints_client:main',
+    ],
+},
+```
+### Build and source the package
+```
+colcon build --packages-select service_example
+sb (source)
+```
+### Run the server and the client 
+```
+ros2 run service_example add_two_ints_server
+ros2 run service_example add_two_ints_client
+```
+### Custom Services
+(in ros2_ws/src/custom_interface)
+```
+mkdir srv
+touch srv/AddThreeInts.srv
+```
+```
+cat <<EOF > AddThreeInts.srv
+int64 a
+int64 b
+int64 c
+---
+int64 sum
+EOF
+```
+### Go to the CMakeList file and add "srv/AddThreeInts.srv" to the rosidl_generate_interface function.
+```
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/Person.msg"
+  "srv/AddThreeInts.srv"
+)
+```
+Now go back to the root, build the package and source it afterwards.
+```
+colcon build --packages-select custom_interface
+sb
+```
+### Confirm the package build by running:
+```
+ros2 interface show custom_interface/srv/AddThreeInts
+```
+
 ## Task3
 ### Creating the package: Open the terminal and navigate to your workpace/src folder
 ```
@@ -10,7 +159,6 @@ cd ~/Group_3/src/Task_3/custom_interface
 mkdir srv
 cd srv
 touch CalDistance.srv
-
 ```
 ### Inside CalDistance.srv
 ```
@@ -20,7 +168,6 @@ geometry_msgs/Point p2
 float64 distance
 bool success
 string message
-
 ```
 ### Modify CMakeList.txt:
 ### Editing in rosidl_generate_interfaces:
@@ -37,33 +184,22 @@ ament_export_dependencies(rosidl_default_runtime)
 cmake_minimum_required(VERSION 3.8)
 project(custom_interface)
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  add_compile_options(-Wall -Wextra -Wpedantic)
-endif()
-
-# find dependencies
+# Only find CMake and rosidl generators
 find_package(ament_cmake REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(std_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
-find_package(geometry_msgs REQUIRED)
-if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
-  # the following line skips the linter which checks for copyrights
-  # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
-  # the following line skips cpplint (only works in a git repo)
-  # comment the line when this package is in a git repo and when
-  # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
-endif()
-rosidl_generate_interfaces(${PROJECT_NAME}
-"msg/Person.msg"
-"srv/CalDistance.srv"
-DEPENDENCIES geometry_msgs
+find_package(geometry_msgs REQUIRED)  # interface dependency
+
+# Generate messages and services
+rosidl_generate_interfaces(
+    ${PROJECT_NAME}
+    "msg/Person.msg"
+    "srv/AddThreeInts.srv"
+    "srv/CalDistance.srv"
+    DEPENDENCIES geometry_msgs
 )
-ament_export_dependencies(rosidl_default_runtime)
+
+# Export dependencies
+ament_export_dependencies(rosidl_default_runtime geometry_msgs)
 ament_package()
 ```
 ### Modify package.xml:
@@ -74,23 +210,21 @@ ament_package()
 ### CODE AFTER MODIFYING:
 ```
 <?xml version="1.0"?>
-<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>custom_interface</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="ubuntu@todo.todo">ubuntu</maintainer>
+  <description>Custom messages and services</description>
+  <maintainer email="humble_olp@todo.todo">humble_olp</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
+
   <build_depend>rosidl_default_generators</build_depend>
   <exec_depend>rosidl_default_runtime</exec_depend>
-  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <depend>geometry_msgs</depend>
-  <depend>rclcpp</depend>
-  <depend>std_msgs</depend>
-  
+
+  <member_of_group>rosidl_interface_packages</member_of_group>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
@@ -99,6 +233,7 @@ ament_package()
     <build_type>ament_cmake</build_type>
   </export>
 </package>
+
 ```
 ### Building and checking the service:
 ```
@@ -110,13 +245,12 @@ source install/setup.bash
 ```
 ros2 interface show custom_interface/srv/CalDistance
 ```
+![Output](my_folder/task3_pic1.png)
 ### Creating Server Node:
 ### inside euclidean_distance/euclidean_distance
 ```
 cd ~/Group_3/src/Task_3/cutom_interface/euclidean_distance
-mkdir euclidean_distance
-cd euclidean_distance
-touch __init__.py dis_ser.py dis_client.py
+touch dis_ser.py dis_client.py
 ```
 ### Open dis_ser.py in VS Code and write the following code: dis_ser.py
 ```
@@ -254,17 +388,13 @@ ros2 run euclidean_distance dis_ser
 ```
 ### Running in Terminal 2: Client Side
 ```
-cd Group_3/src/Task_3
-colcon build --packages-select distance_client                       
+cd Group_3/src/Task_3                     
 source install/setup.bash
 ros2 run euclidean_distance dis_client
 ```
-
-
-
-
-
-
-
-
+![Output](my_folder/task3_pic2.png)
+```
+ros2 interface show custom_interface/srv/CalDistance
+```
+![Output](my_folder/task3_pic3.png)
 
